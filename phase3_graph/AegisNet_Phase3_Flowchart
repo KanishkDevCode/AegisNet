@@ -1,0 +1,186 @@
+==========================================================
+AEGISNET PHASE 3
+MITRE ATT&CK SPATIAL GRAPHRAG (THE MAPPER)
+==========================================================
+
+GOAL:
+-----
+Phase 3 builds a dynamic, searchable map of the entire 
+corporate network, linking servers, subnets, and 
+vulnerabilities so the AI can understand lateral movement.
+
+
+WHY PHASE 3 EXISTS:
+-------------------
+
+Phase 1 & 2 can tell us:
+
+    "Ramnit Malware just hit Server X."
+
+But they cannot tell us:
+
+    "What other servers is Server X connected to?
+     Does it hold critical data? 
+     How can the attacker move from here?"
+
+Phase 3 provides this vital context.
+
+
+==========================================================
+HIGH LEVEL FLOW
+==========================================================
+
+          Network Infrastructure Data
+                  |
+                  v
+      +----------------------+
+      |   Graph Database     |
+      |     (Neo4j Aura)     |
+      +----------------------+
+                  |
+                  v
+      +----------------------+
+      |   Generate Nodes &   |
+      |    Relationships     |
+      +----------------------+
+                  |
+                  v
+      +----------------------+
+      | Vector AI Embeddings |
+      | (SentenceTransformer)|
+      +----------------------+
+                  |
+                  v
+      Example Output Map:
+      ----------------
+      (DMZ Subnet) -> (Linux Web Server)
+      (Linux Web Server) -> HAS -> (Log4Shell Vulnerability)
+      (Mirai Malware) -> EXPLOITS -> (Log4Shell Vulnerability)
+
+
+==========================================================
+STEP 1
+BUILDING THE NETWORK NODES
+==========================================================
+
+Nodes are the physical and logical entities.
+
+Example:
+
+    Subnets: DMZ, Internal, Database
+    Servers: Web-01, App-01, DB-Primary
+
+The database creates these as isolated islands.
+
+
+==========================================================
+STEP 2
+CONNECTING THE RELATIONSHIPS
+==========================================================
+
+We map out how data flows through the network.
+
+Example:
+
+    Web-01  ---[CAN_REACH]--->  App-01
+    App-01  ---[CAN_REACH]--->  DB-Primary
+
+This creates "Lateral Movement Paths." If a hacker breaches 
+Web-01, we now mathematically know they have a path to the 
+Database.
+
+
+==========================================================
+STEP 3
+INJECTING VULNERABILITIES (CVEs)
+==========================================================
+
+We take real-world MITRE ATT&CK Vulnerabilities:
+
+Example:
+
+    CVE-2017-0144 (EternalBlue)
+    CVE-2021-44228 (Log4Shell)
+
+We attach these vulnerabilities directly to the servers 
+that are exposed to them.
+
+
+==========================================================
+STEP 4
+AI EMBEDDING (GRAPHRAG)
+==========================================================
+
+Model Used:
+
+    SentenceTransformer (all-MiniLM-L6-v2)
+
+The AI reads the text description of the vulnerability:
+"Log4Shell allows remote code execution..."
+
+And converts it into a 384-dimensional mathematical vector:
+[0.012, -0.453, 0.991, ...]
+
+Purpose:
+
+    When Phase 4 asks "Find me vulnerabilities similar to 
+    remote execution", Neo4j can instantly search these 
+    vectors using Cosine Similarity.
+
+
+==========================================================
+HOW PHASE 1, 2, AND 3 WORK TOGETHER
+==========================================================
+
++----------------------+
+|      PHASE 1         |
+|  Intrusion Detector  |
++----------------------+
+       |
+       v
+"Threat Detected on App-01"
+       |
+       v
++----------------------+
+|      PHASE 2         |
+|   Vision Analyzer    |
++----------------------+
+       |
+       v
+"It is Allaple.L Malware"
+       |
+       v
++----------------------+
+|      PHASE 3         |
+|   Spatial GraphRAG   |
++----------------------+
+       |
+       v
+"App-01 connects to DB-Primary. 
+ Allaple.L exploits EternalBlue. 
+ DB-Primary is vulnerable!"
+
+       |
+       v
+(Data sent to Phase 4 for isolation)
+
+
+==========================================================
+PHASE 3 STATUS
+==========================================================
+
+Phase 3 Completed Successfully
+
+Database:
+    Neo4j AuraDB (Cloud)
+
+Nodes Created:
+    Subnets, Servers, CVEs, Malware Families
+
+Embeddings:
+    384-dimensional vectors via SentenceTransformers
+
+Status:
+    READY FOR PHASE 4 AI ORCHESTRATION
+
+==========================================================

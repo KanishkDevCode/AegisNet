@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Environment Variables (CRITICAL FOR SECURITY)
+.env
+.env.*
+
+# Large Model Files (GitHub limits files to 100MB)
+*.pt
+*.onnx
+*.onnx.data
+*.data
+*.cbm
+*.zip
+
+# OS generated files
+.DS_Store
+Thumbs.db

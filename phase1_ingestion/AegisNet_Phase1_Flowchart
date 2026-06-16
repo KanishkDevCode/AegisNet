@@ -1,0 +1,171 @@
+
+AEGISNET PHASE 1 - NETWORK INTRUSION DETECTION FLOW
+
+============================================================
+                    NETWORK TRAFFIC
+============================================================
+
+      User Activity / Network Connection
+                    |
+                    v
+      +-----------------------------+
+      | Incoming Network Traffic    |
+      | (Packets, Flows, Sessions)  |
+      +-----------------------------+
+                    |
+                    v
+
+============================================================
+                 FEATURE EXTRACTION
+============================================================
+
+Collect Important Information:
+
+- Source IP
+- Destination IP
+- Protocol
+- Port Number
+- Packet Count
+- Bytes Sent
+- Connection Duration
+- Flow Statistics
+- Network Behavior Metrics
+
+                    |
+                    v
+
+============================================================
+                 PHASE 1 FASTAPI SERVER
+============================================================
+
+        server.py receives the request
+
+                    |
+                    v
+
+      Validate incoming JSON data
+                    |
+                    v
+
+      Align features with training data
+      using feature_names.json
+
+                    |
+                    v
+
+============================================================
+                 CATBOOST AI MODEL
+============================================================
+
+        phase1_catboost_model.cbm
+
+                    |
+                    v
+
+      AI analyzes network behavior
+
+                    |
+                    v
+
+      Learns patterns such as:
+
+      - Normal Traffic
+      - DDoS Attack
+      - Port Scanning
+      - Brute Force Attempts
+      - Botnet Activity
+      - Other Intrusion Types
+
+                    |
+                    v
+
+============================================================
+                 PREDICTION ENGINE
+============================================================
+
+      Model calculates probabilities
+
+                    |
+                    v
+
+      Example:
+
+      Normal       -> 98.5%
+      DDoS         -> 0.8%
+      Port Scan    -> 0.5%
+      Brute Force  -> 0.2%
+
+                    |
+                    v
+
+============================================================
+                  LABEL MAPPING
+============================================================
+
+      phase1_label_mapping.json
+
+                    |
+                    v
+
+      Converts numeric output
+
+           0 -> Normal
+           1 -> DDoS
+           2 -> Port Scan
+           3 -> Brute Force
+
+                    |
+                    v
+
+============================================================
+                    FINAL RESULT
+============================================================
+
+      Example Output:
+
+      {
+          "prediction": "DDoS",
+          "confidence": 96.2
+      }
+
+                    |
+                    v
+
+============================================================
+                 SECURITY DECISION
+============================================================
+
+      If Normal:
+          Allow Traffic
+
+      If Suspicious:
+          Raise Alert
+          Log Event
+          Trigger Defense Systems
+
+                    |
+                    v
+
+============================================================
+              OUTPUT TO NEXT PHASES
+============================================================
+
+      Phase 1 Result
+            |
+            +----> Security Dashboard
+            |
+            +----> Alerting System
+            |
+            +----> Phase 4 Defense Engine
+            |
+            +----> SOC Monitoring Team
+
+
+============================================================
+               SIMPLE ONE-LINE SUMMARY
+============================================================
+
+Phase 1 acts as an AI Security Guard that inspects
+every network connection, determines whether it is
+normal or malicious, and produces a threat prediction
+for the rest of the AegisNet platform.

@@ -1,0 +1,350 @@
+==========================================================
+AEGISNET PHASE 2
+VISION TRIAGE ENGINE (THE ANALYST)
+==========================================================
+
+GOAL:
+-----
+Phase 2 identifies WHICH malware family a suspicious file
+belongs to using Artificial Intelligence and Computer Vision.
+
+
+WHY PHASE 2 EXISTS:
+-------------------
+
+Phase 1 can tell us:
+
+    "Something malicious is happening."
+
+But Phase 1 cannot tell us:
+
+    "Which malware is causing it?"
+
+Phase 2 answers that question.
+
+
+==========================================================
+HIGH LEVEL FLOW
+==========================================================
+
+          Suspicious File
+                  |
+                  v
+      +----------------------+
+      |  Malware Binary      |
+      |   (.exe, .dll etc)   |
+      +----------------------+
+                  |
+                  v
+      +----------------------+
+      | Convert Binary Data  |
+      |     Into Image       |
+      +----------------------+
+                  |
+                  v
+      +----------------------+
+      | Vision Transformer   |
+      |      (ViT-B/16)      |
+      +----------------------+
+                  |
+                  v
+      +----------------------+
+      | Malware Family Name  |
+      +----------------------+
+                  |
+                  v
+      Example Output:
+      ----------------
+      Ramnit
+      Amonetize
+      Dinwod
+      TrickBot
+      Emotet
+
+
+==========================================================
+STEP 1
+MALWARE FILE ARRIVES
+==========================================================
+
+Example:
+
+    virus.exe
+
+or
+
+    trojan.exe
+
+or
+
+    suspicious_file.exe
+
+The file is suspected to be malicious.
+
+
+==========================================================
+STEP 2
+CONVERT FILE TO IMAGE
+==========================================================
+
+Every file is actually a sequence of bytes.
+
+Example:
+
+    54 32 89 10 23 44 ...
+
+These bytes are converted into pixels.
+
+Example:
+
+    Byte Value --> Pixel Brightness
+
+Result:
+
+    Malware Image
+
+Different malware families create different visual patterns.
+
+
+==========================================================
+STEP 3
+IMAGE ENTERS AI MODEL
+==========================================================
+
+Model Used:
+
+    Vision Transformer (ViT-B/16)
+
+This model is similar to models used for:
+
+    Object Detection
+    Medical Imaging
+    Satellite Analysis
+
+But here it learns malware patterns.
+
+
+==========================================================
+STEP 4
+AI ANALYZES PATTERNS
+==========================================================
+
+The AI learns:
+
+    Texture Patterns
+    Structural Layouts
+    Entropy Regions
+    Packed Sections
+    Malware Signatures
+
+It does NOT memorize files.
+
+It learns family characteristics.
+
+
+==========================================================
+STEP 5
+AUGMENTATION (ANTI-EVASION TRAINING)
+==========================================================
+
+Techniques Used:
+
+    MixUp
+    CutMix
+
+Purpose:
+
+    Prevent AI from memorizing images.
+
+Benefits:
+
+    Better Generalization
+    Better Detection
+    More Resistant To:
+
+        Polymorphic Malware
+        Metamorphic Malware
+        Packed Malware
+        Obfuscated Malware
+
+
+==========================================================
+STEP 6
+CLASSIFICATION
+==========================================================
+
+AI Prediction Example:
+
+    Input Image
+          |
+          v
+
+    Vision Transformer
+
+          |
+          v
+
+    Output:
+
+        Ramnit (98.4%)
+
+or
+
+        Amonetize (97.8%)
+
+or
+
+        TrickBot (99.1%)
+
+
+==========================================================
+DATASET USED
+==========================================================
+
+Fusion Malware Dataset
+
+Contains:
+
+    32,601 Malware Images
+
+Across:
+
+    59 Malware Families
+
+
+==========================================================
+MODEL TRAINING RESULTS
+==========================================================
+
+Model:
+
+    ViT-B/16
+
+Dataset:
+
+    Fusion Malware Dataset
+
+Classes:
+
+    59
+
+Validation Accuracy:
+
+    98.22%
+
+Status:
+
+    SUCCESSFULLY TRAINED
+
+
+==========================================================
+FILES GENERATED
+==========================================================
+
+1.
+
+    vit_aegisnet_phase2.pt
+
+Purpose:
+
+    Trained AI Model
+
+----------------------------
+
+2.
+
+    vit_label_mapping.json
+
+Purpose:
+
+    Converts class numbers
+    into malware family names
+
+----------------------------
+
+3.
+
+    checkpoint.pt
+
+Purpose:
+
+    Resume Training Later
+
+
+==========================================================
+HOW PHASE 1 AND PHASE 2 WORK TOGETHER
+==========================================================
+
+NETWORK TRAFFIC
+       |
+       v
+
++----------------------+
+|      PHASE 1         |
+|  Intrusion Detector  |
++----------------------+
+       |
+       v
+
+"Attack Detected"
+
+       |
+       v
+
+Suspicious Malware File
+
+       |
+       v
+
++----------------------+
+|      PHASE 2         |
+|   Vision Analyzer    |
++----------------------+
+       |
+       v
+
+"Ramnit Malware"
+
+
+==========================================================
+FINAL OUTPUT OF PHASE 2
+==========================================================
+
+INPUT:
+
+    Malware File
+
+OUTPUT:
+
+    Malware Family Name
+
+EXAMPLE:
+
+    File:
+        sample.exe
+
+    Prediction:
+        Ramnit
+
+    Confidence:
+        98.22%
+
+==========================================================
+PHASE 2 STATUS
+==========================================================
+
+Phase 2 Completed Successfully
+
+Dataset:
+    32,601 Images
+
+Families:
+    59
+
+Model:
+    Vision Transformer (ViT-B/16)
+
+Best Validation Accuracy:
+    98.22%
+
+==========================================================
