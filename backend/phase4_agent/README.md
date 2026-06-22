@@ -1,22 +1,25 @@
-# Phase 4: Active Defense Simulation & Agent Swarm (The Brain)
+<div align="center">
+  <img src="https://img.shields.io/badge/LangGraph-Agentic_Swarm-purple?style=for-the-badge&logo=openai" />
+  <img src="https://img.shields.io/badge/Stable_Baselines3-PPO_DRL-orange?style=for-the-badge" />
+  <h2>Phase 4: Active Defense Simulation & SOAR</h2>
+</div>
 
-This phase acts as the central intelligence of AegisNet. It orchestrates the entire pipeline and makes autonomous decisions to isolate threats before they can spread.
+## 📖 Overview
+This is the **Central Intelligence** of AegisNet. Phase 4 orchestrates the entire lifecycle of a threat, from detection (Phase 1/2) to assessment (Phase 3) to final containment (Phase 4).
 
-## 🧠 Core Technologies
-- **LangGraph**: A state machine framework used to orchestrate the flow of data between Phase 1, 2, 3, and 4.
-- **Gymnasium**: A custom reinforcement learning environment (`AegisBattleSim`) mapping the Neo4j topology.
-- **Stable-Baselines3 (PPO)**: Used to train a Deep Reinforcement Learning agent via 50,000 simulated cyber attacks.
+## ⚙️ How It Works
+1. **LangGraph State Machine**: A typed state dictionary flows through the nodes.
+2. **HITL Matrix**: A Human-In-The-Loop fallback mechanism checks the Vision model's confidence. If confidence is >95%, it auto-approves containment.
+3. **AegisBattleSim (Gymnasium)**: Instead of relying on buggy external dependencies (like Microsoft CyberBattleSim), AegisNet uses a **Native Python Gymnasium Environment**. The environment mathematically models lateral infection spread.
+4. **Deep Reinforcement Learning**: A pre-trained `PPO` (Proximal Policy Optimization) agent dynamically observes which server is infected and outputs the optimal Zero-Trust Firewall isolation rule.
+5. **SOAR Webhooks**: Upon containment, the system generates a structured JSON webhook formatted for enterprise SIEMs like Splunk or Elastic Security.
 
-## ⚙️ Architecture Flow
-1. The **LangGraph Swarm** calls Phase 1. If an anomaly is found, it triggers Phase 2.
-2. Phase 2 classifies the malware.
-3. Phase 3 maps the blast radius.
-4. The **HITL (Human-in-the-Loop) Approval Matrix** evaluates the confidence score. If confidence > 95%, it auto-approves. Otherwise, it halts for human SOC review.
-5. If approved, the **DRL Agent** determines the mathematically optimal firewall isolation strategy to contain the infected node without taking down critical infrastructure.
-
-## 🚀 Usage
-To run the full end-to-end simulated cyber attack across all phases:
+## 🧪 Testing Locally
+Run the full Swarm (make sure Phase 1 and Phase 2 servers are running, or rely on the mock triggers):
 ```bash
-# Make sure Phase 1 and Phase 2 servers are running in the background!
 python swarm.py
+```
+To run the State Machine Audit tests:
+```bash
+pytest ../tests/test_swarm.py -v
 ```

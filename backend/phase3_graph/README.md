@@ -1,21 +1,21 @@
-# Phase 3: MITRE ATT&CK Spatial GraphRAG (The Map)
+<div align="center">
+  <img src="https://img.shields.io/badge/Neo4j-AuraDB-blue?style=for-the-badge&logo=neo4j" />
+  <img src="https://img.shields.io/badge/Ollama-Llama_3.1-black?style=for-the-badge&logo=meta" />
+  <h2>Phase 3: Spatial GraphRAG & LLM Assessment</h2>
+</div>
 
-Detecting malware is not enough; we must understand *where* it is and *what* it can reach. Phase 3 builds a live, searchable map of the entire corporate network.
+## 📖 Overview
+Detecting the malware is not enough; the SOC must understand the **blast radius**. Phase 3 acts as the Brain of AegisNet, mapping the corporate network topology and querying a local LLM to assess the lateral movement risk.
 
-## 🧠 Core Technologies
-- **Neo4j AuraDB**: A cloud-native Graph Database used to map servers, subnets, and vulnerabilities.
-- **SentenceTransformers**: Used to convert MITRE ATT&CK textual descriptions into NLP mathematical vectors.
-- **GraphRAG**: Combines Graph traversal with Retrieval-Augmented Generation to understand threat context.
+## ⚙️ How It Works
+1. **GraphRAG**: The system connects to a **Neo4j AuraDB** cloud database containing the entire enterprise network topology (DMZ, Internal, Database servers) and mapped MITRE ATT&CK CVE vulnerabilities.
+2. **Context Retrieval**: Using Cypher queries, Phase 3 pulls all connected systems to the originally infected node.
+3. **Local LLM**: The massive graph context is passed to a fully local **Ollama `llama3.1:8b`** Large Language Model via `langchain-ollama`.
+4. **Threat Assessment**: The LLM dynamically drafts an enterprise-grade incident summary and determines the immediate lateral movement risk (High, Medium, Low).
 
-## ⚙️ Architecture Flow
-1. A virtual corporate network (DMZ, Internal, Database) is built in Neo4j.
-2. Servers and known vulnerabilities (CVEs) are mapped as nodes.
-3. When Phase 2 identifies a malware family (e.g., `Allaple.L`), this phase uses Cypher queries to calculate exactly which servers are exposed to lateral movement.
-4. The blast radius and risk assessment are forwarded to **Phase 4** for action.
-
-## 🚀 Usage
-To build the network topology and inject vector embeddings into your Neo4j instance:
+## 🔑 Setup
+You must have Ollama installed and the model downloaded before running this phase:
 ```bash
-# Ensure your .env file is populated with your Neo4j Aura credentials
-python build_graph.py
+ollama run llama3.1:8b
 ```
+And your `.env` file must contain your Neo4j credentials.
