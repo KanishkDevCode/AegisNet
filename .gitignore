@@ -9,6 +9,12 @@ venv/
 env/
 ENV/
 
+# Frontend (Next.js & Node)
+node_modules/
+.next/
+out/
+build/
+
 # Environment Variables (CRITICAL FOR SECURITY)
 .env
 .env.*
