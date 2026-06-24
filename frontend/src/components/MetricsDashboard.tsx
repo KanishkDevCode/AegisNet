@@ -24,19 +24,23 @@ interface MetricsData {
   drift_status: string;
 }
 
-function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType; label: string; value: number | string; color: string }) {
+function StatCard({ icon: Icon, label, value, color, glowColor }: { icon: React.ElementType; label: string; value: number | string; color: string; glowColor: string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-panel p-4 flex items-center gap-4"
+      whileHover={{ y: -5, boxShadow: `0 10px 30px -10px ${glowColor}` }}
+      className="relative overflow-hidden rounded-xl bg-black/40 backdrop-blur-xl border border-white/10 p-5 flex flex-col gap-3 group transition-all"
     >
-      <div className={`p-3 rounded-lg ${color}`}>
-        <Icon size={20} />
-      </div>
-      <div>
-        <p className="text-xs text-zinc-400 uppercase tracking-wider">{label}</p>
-        <p className="text-2xl font-bold text-white">{value}</p>
+      <div className="absolute top-0 left-0 w-full h-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: glowColor }} />
+      <div className="flex items-center gap-4">
+        <div className={`p-3 rounded-xl bg-gradient-to-br ${color} shadow-lg ring-1 ring-white/10`}>
+          <Icon size={22} className="text-white drop-shadow-md" />
+        </div>
+        <div className="flex-1">
+          <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-[0.2em] mb-1">{label}</p>
+          <p className="text-3xl font-black text-white tracking-tight">{value}</p>
+        </div>
       </div>
     </motion.div>
   );
@@ -45,47 +49,67 @@ function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType
 function DriftGauge({ value, status }: { value: number; status: string }) {
   const percentage = Math.min((value / 0.20) * 100, 100);
   let gaugeColor = '#22c55e';
-  if (status === 'WARNING') gaugeColor = '#eab308';
-  if (status === 'CRITICAL') gaugeColor = '#ef4444';
+  let glowClass = 'drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]';
+  
+  if (status === 'WARNING') {
+    gaugeColor = '#eab308';
+    glowClass = 'drop-shadow-[0_0_8px_rgba(234,179,8,0.8)]';
+  }
+  if (status === 'CRITICAL') {
+    gaugeColor = '#ef4444';
+    glowClass = 'drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]';
+  }
 
   return (
-    <div className="glass-panel p-6 flex flex-col items-center justify-center">
-      <p className="text-xs text-zinc-400 uppercase tracking-wider mb-4">Data Drift (Wasserstein)</p>
-      <div className="relative w-32 h-32">
+    <motion.div 
+      whileHover={{ scale: 1.02 }}
+      className="rounded-xl bg-black/40 backdrop-blur-xl border border-white/10 p-6 flex flex-col items-center justify-center relative overflow-hidden"
+    >
+      <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/5 rounded-full blur-3xl" />
+      <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.2em] mb-4">Data Drift (Wasserstein)</p>
+      <div className="relative w-36 h-36">
         <svg viewBox="0 0 120 120" className="w-full h-full -rotate-90">
-          <circle cx="60" cy="60" r="50" fill="none" stroke="#27272a" strokeWidth="10" />
+          <defs>
+            <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={gaugeColor} />
+              <stop offset="100%" stopColor={status === 'OK' ? '#10b981' : status === 'WARNING' ? '#ca8a04' : '#b91c1c'} />
+            </linearGradient>
+          </defs>
+          <circle cx="60" cy="60" r="50" fill="none" stroke="#18181b" strokeWidth="8" />
           <circle
             cx="60" cy="60" r="50" fill="none"
-            stroke={gaugeColor}
-            strokeWidth="10"
+            stroke="url(#gaugeGradient)"
+            strokeWidth="8"
             strokeLinecap="round"
             strokeDasharray={`${percentage * 3.14} 314`}
-            style={{ transition: 'stroke-dasharray 1s ease-in-out' }}
+            className={`transition-all duration-1000 ease-out ${glowClass}`}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-bold text-white">{value.toFixed(4)}</span>
-          <span className={`text-xs font-semibold ${status === 'OK' ? 'text-green-400' : status === 'WARNING' ? 'text-yellow-400' : 'text-red-400'}`}>
+          <span className="text-3xl font-black text-white tracking-tighter">{value.toFixed(4)}</span>
+          <span className={`text-xs font-bold tracking-widest mt-1 ${status === 'OK' ? 'text-green-400' : status === 'WARNING' ? 'text-yellow-400' : 'text-red-400'}`}>
             {status}
           </span>
         </div>
       </div>
-      <div className="flex gap-4 mt-4 text-[10px] text-zinc-500">
-        <span><span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>&lt;0.10</span>
-        <span><span className="inline-block w-2 h-2 rounded-full bg-yellow-500 mr-1"></span>&lt;0.15</span>
-        <span><span className="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span>&gt;0.15</span>
+      <div className="flex justify-center gap-4 mt-6 px-4 py-2 bg-black/30 rounded-full border border-white/5 text-[10px] text-zinc-400 font-medium">
+        <span className="flex items-center"><span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5 shadow-[0_0_5px_#22c55e]"></span>&lt;0.10</span>
+        <span className="flex items-center"><span className="w-1.5 h-1.5 rounded-full bg-yellow-500 mr-1.5 shadow-[0_0_5px_#eab308]"></span>&lt;0.15</span>
+        <span className="flex items-center"><span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5 shadow-[0_0_5px_#ef4444]"></span>&gt;0.15</span>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 const customTooltipStyle = {
-  backgroundColor: '#18181b',
-  border: '1px solid #3f3f46',
-  borderRadius: '8px',
-  padding: '8px 12px',
-  fontSize: '12px',
-  color: '#e4e4e7',
+  backgroundColor: 'rgba(9, 9, 11, 0.9)',
+  backdropFilter: 'blur(8px)',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  borderRadius: '12px',
+  padding: '12px 16px',
+  fontSize: '13px',
+  color: '#fafafa',
+  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
 };
 
 export default function MetricsDashboard() {
@@ -108,79 +132,91 @@ export default function MetricsDashboard() {
 
   if (!data) {
     return (
-      <div className="w-full h-full flex items-center justify-center text-zinc-500 font-mono text-sm">
-        <Activity className="animate-pulse mr-2" size={16} />
+      <div className="w-full h-full flex flex-col items-center justify-center text-zinc-500 font-mono text-sm gap-4">
+        <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
         Connecting to AegisNet Telemetry...
       </div>
     );
   }
 
   return (
-    <div className="w-full h-full overflow-y-auto p-1 space-y-4">
+    <div className="w-full h-full overflow-y-auto p-1 space-y-5 pb-10">
       {/* Stat Cards Row */}
-      <div className="grid grid-cols-2 xl:grid-cols-5 gap-3">
-        <StatCard icon={BarChart3} label="Total Scenarios" value={data.counters.total_scenarios} color="bg-blue-500/20 text-blue-400" />
-        <StatCard icon={Shield} label="Containments" value={data.counters.containments} color="bg-green-500/20 text-green-400" />
-        <StatCard icon={AlertTriangle} label="Threats Detected" value={data.counters.threats_detected} color="bg-red-500/20 text-red-400" />
-        <StatCard icon={TrendingUp} label="Success Rate" value={data.counters.total_scenarios > 0 ? `${Math.round((data.counters.successful / data.counters.total_scenarios) * 100)}%` : '—'} color="bg-purple-500/20 text-purple-400" />
-        <StatCard icon={Zap} label="Failed" value={data.counters.failed} color="bg-yellow-500/20 text-yellow-400" />
+      <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
+        <StatCard icon={BarChart3} label="Total Scenarios" value={data.counters.total_scenarios} color="from-blue-600 to-blue-400" glowColor="rgba(59,130,246,0.5)" />
+        <StatCard icon={Shield} label="Containments" value={data.counters.containments} color="from-emerald-600 to-emerald-400" glowColor="rgba(16,185,129,0.5)" />
+        <StatCard icon={AlertTriangle} label="Threats Detected" value={data.counters.threats_detected} color="from-rose-600 to-rose-400" glowColor="rgba(225,29,72,0.5)" />
+        <StatCard icon={TrendingUp} label="Success Rate" value={data.counters.total_scenarios > 0 ? `${Math.round((data.counters.successful / data.counters.total_scenarios) * 100)}%` : '—'} color="from-indigo-600 to-indigo-400" glowColor="rgba(79,70,229,0.5)" />
+        <StatCard icon={Zap} label="Failed Tasks" value={data.counters.failed} color="from-amber-600 to-amber-400" glowColor="rgba(217,119,6,0.5)" />
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Confidence Chart */}
-        <div className="glass-panel p-4 lg:col-span-2">
-          <p className="text-xs text-zinc-400 uppercase tracking-wider mb-3">Vision Model Confidence Over Time</p>
+        <motion.div whileHover={{ scale: 1.01 }} className="rounded-xl bg-black/40 backdrop-blur-xl border border-white/10 p-5 lg:col-span-2 shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+          <h3 className="text-sm font-bold text-white tracking-wide mb-1">Vision Model Confidence</h3>
+          <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-[0.1em] mb-6">Historical prediction accuracy over scenario runs</p>
+          
           {data.confidence_history.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <AreaChart data={data.confidence_history}>
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={data.confidence_history} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="confGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.6} />
                     <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-                <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#71717a' }} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: '#71717a' }} />
-                <Tooltip contentStyle={customTooltipStyle} cursor={{ fill: '#27272a', opacity: 0.4 }} />
-                <Area type="monotone" dataKey="value" stroke="#3b82f6" fill="url(#confGradient)" strokeWidth={2} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} dy={10} />
+                <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={customTooltipStyle} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
+                <Area type="monotone" dataKey="value" stroke="#60a5fa" fill="url(#confGradient)" strokeWidth={3} activeDot={{ r: 6, fill: '#fff', stroke: '#3b82f6', strokeWidth: 2 }} />
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-zinc-600 text-sm italic h-[200px] flex items-center justify-center">No data yet. Run a scenario first.</p>
+            <div className="h-[220px] flex flex-col items-center justify-center text-zinc-500 text-sm">
+              <Activity className="opacity-20 mb-2" size={32} />
+              <p>No telemetry data. Run a scenario to populate.</p>
+            </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Drift Gauge */}
         <DriftGauge value={data.current_drift} status={data.drift_status} />
       </div>
 
       {/* Latency Chart */}
-      <div className="glass-panel p-4">
-        <p className="text-xs text-zinc-400 uppercase tracking-wider mb-3">Phase Inference Latency (ms)</p>
+      <motion.div whileHover={{ scale: 1.005 }} className="rounded-xl bg-black/40 backdrop-blur-xl border border-white/10 p-5 shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
+        <h3 className="text-sm font-bold text-white tracking-wide mb-1">Agentic Phase Latency</h3>
+        <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-[0.1em] mb-6">Inference time across all Swarm components</p>
+        
         {data.latency_history.length > 0 ? (
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={data.latency_history}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#71717a' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: '#71717a' }} axisLine={false} tickLine={false} tickFormatter={(val) => `${(val / 1000).toFixed(0)}s`} />
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={data.latency_history} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barGap={2} barSize={12}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} dy={10} />
+              <YAxis tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} tickFormatter={(val) => `${(val / 1000).toFixed(1)}s`} />
               <Tooltip 
                 contentStyle={customTooltipStyle} 
-                formatter={(value: number) => [`${(value / 1000).toFixed(2)}s`, undefined]} 
-                cursor={{ fill: '#27272a', opacity: 0.4 }}
+                formatter={(value) => [`${(Number(value ?? 0) / 1000).toFixed(2)}s`, undefined as never]} 
+                cursor={{ fill: 'rgba(255,255,255,0.02)' }}
               />
-              <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
-              <Bar dataKey="phase1" stackId="a" fill="#3b82f6" name="P1 (Sensor)" maxBarSize={60} radius={[0, 0, 0, 0]} />
-              <Bar dataKey="phase2" stackId="a" fill="#8b5cf6" name="P2 (Vision)" maxBarSize={60} radius={[0, 0, 0, 0]} />
-              <Bar dataKey="phase3" stackId="a" fill="#f59e0b" name="P3 (LLM Brain)" maxBarSize={60} radius={[0, 0, 0, 0]} />
-              <Bar dataKey="phase4" stackId="a" fill="#22c55e" name="P4 (DRL Firewall)" maxBarSize={60} radius={[4, 4, 0, 0]} />
+              <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', fontWeight: 500, color: '#e4e4e7', paddingTop: '20px' }} />
+              <Bar dataKey="phase1" fill="#3b82f6" name="P1 (CatBoost)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="phase2" fill="#8b5cf6" name="P2 (Vision)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="phase3" fill="#f59e0b" name="P3 (LLM Brain)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="phase4" fill="#10b981" name="P4 (DRL Firewall)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-zinc-600 text-sm italic h-[180px] flex items-center justify-center">No data yet. Run a scenario first.</p>
+          <div className="h-[220px] flex flex-col items-center justify-center text-zinc-500 text-sm">
+            <BarChart3 className="opacity-20 mb-2" size={32} />
+            <p>Awaiting latency metrics from swarm pipeline...</p>
+          </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

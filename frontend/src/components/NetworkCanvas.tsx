@@ -17,6 +17,9 @@ const initialEdges: Edge[] = [
   { id: 'e2-4', source: '2', target: '4', animated: true, style: { stroke: '#3b82f6', strokeWidth: 2 } },
 ];
 
+const nodeTypes = {};
+const edgeTypes = {};
+
 interface NetworkCanvasProps {
   infectedServer: string;
   isolationPlan: string;
@@ -54,7 +57,7 @@ export default function NetworkCanvas({ infectedServer, isolationPlan }: Network
         <div className="flex items-center gap-2 mb-1"><div className="w-2 h-2 rounded-full bg-red-500"></div> Infected</div>
         <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500"></div> Isolated</div>
       </div>
-      <ReactFlow nodes={nodes} edges={initialEdges} fitView attributionPosition="bottom-right">
+      <ReactFlow nodes={nodes} edges={initialEdges} nodeTypes={nodeTypes} edgeTypes={edgeTypes} fitView attributionPosition="bottom-right">
         <Background color="#3f3f46" variant={BackgroundVariant.Dots} gap={16} />
         <Controls />
       </ReactFlow>

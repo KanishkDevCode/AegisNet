@@ -42,3 +42,4 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #52525b;
 }
+.react-flow__attribution { display: none !important; }
