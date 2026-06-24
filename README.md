@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/hero_banner.png" alt="AegisNet Hero Banner" width="800" style="border-radius: 12px; margin-bottom: 20px;" />
+  <img src="assets/hero_banner.png" alt="AegisNet Hero Banner" width="100%" />
   <br/><br/>
   <img src="https://img.shields.io/badge/Next.js-React_Flow-black?style=for-the-badge&logo=next.js" />
   <img src="https://img.shields.io/badge/LangGraph-Agentic_Swarm-8A2BE2?style=for-the-badge&logo=openai&logoColor=white" />
