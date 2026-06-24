@@ -20,7 +20,7 @@ graph TD
     C -->|16x16 Image Patches| D[🧠 Transformer Self-Attention];
     D --> E[🔍 Malware Family Classification];
 
-    E :::highlight
+    class E highlight;
 
     E -->|Confidence Score + Family| F[💬 Phase 3 GraphRAG];
 ```

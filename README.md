@@ -54,18 +54,14 @@ graph TD
     B -->|Logs & Latency Data| L[📊 Phase 5: MLOps Metrics Store]
     L -->|Polling| A
 
-    A :::frontend
-    B :::api
-    C :::p1
-    D :::p2
-    E :::p3
-    F :::p3
-    G :::p3
-    H :::p4
-    I :::p4
-    J :::p4
-    K :::highlight
-    L :::p5
+    class A frontend;
+    class B api;
+    class C p1;
+    class D p2;
+    class E,F,G p3;
+    class H,I,J p4;
+    class K highlight;
+    class L p5;
 ```
 
 ---

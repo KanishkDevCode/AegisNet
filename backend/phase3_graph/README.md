@@ -20,7 +20,7 @@ graph TD
     C -->|Network Topology & CVEs| D[🧠 Ollama Llama 3.1];
     D --> E[📝 Lateral Movement Risk Assessment];
 
-    E :::highlight
+    class E highlight;
 
     E -->|Natural Language Context| F[🛡️ Phase 4 DRL Agent];
 ```

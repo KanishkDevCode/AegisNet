@@ -25,8 +25,8 @@ graph TD
     D --> F;
     E --> F;
 
-    F :::highlight
-    D :::warning
+    class F highlight;
+    class D warning;
 ```
 
 ## ⚙️ How It Works

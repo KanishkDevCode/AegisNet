@@ -26,8 +26,8 @@ graph TD
     E -->|Observe Infection| F[🧠 Deep Reinforcement Learning PPO];
     F -->|Zero-Trust Firewall Policy| G[🔗 SOAR Webhooks];
 
-    C :::hitl
-    G :::highlight
+    class C hitl;
+    class G highlight;
 ```
 
 ## ⚙️ How It Works

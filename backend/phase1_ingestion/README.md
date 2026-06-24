@@ -21,8 +21,8 @@ graph TD
     C -->|Probability < 85%| D[🟢 Normal Traffic];
     C -->|Probability > 85%| E[🔴 Anomaly Detected];
 
-    D :::safe
-    E :::anomaly
+    class D safe;
+    class E anomaly;
 
     E -->|Forward to Phase 2| F[👁️ Vision Transformer];
 ```
