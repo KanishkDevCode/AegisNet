@@ -1,41 +1,71 @@
 <div align="center">
-  <img src="https://img.shields.io/badge/LangGraph-Agentic_Swarm-purple?style=for-the-badge&logo=openai" />
   <img src="https://img.shields.io/badge/Next.js-React_Flow-black?style=for-the-badge&logo=next.js" />
-  <img src="https://img.shields.io/badge/Ollama-Llama_3.1-blue?style=for-the-badge&logo=meta" />
+  <img src="https://img.shields.io/badge/LangGraph-Agentic_Swarm-8A2BE2?style=for-the-badge&logo=openai&logoColor=white" />
+  <img src="https://img.shields.io/badge/Ollama-Llama_3.1-black?style=for-the-badge&logo=meta&logoColor=white" />
+  <img src="https://img.shields.io/badge/Stable_Baselines3-PPO_DRL-FF8C00?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Neo4j-AuraDB-008CC1?style=for-the-badge&logo=neo4j&logoColor=white" />
+  
   <h1>🛡️ AegisNet: Autonomous Agentic Cyber Defense</h1>
-  <p>An end-to-end, multi-modal cybersecurity orchestration system built with Machine Learning, Vision Transformers, GraphRAG, Deep Reinforcement Learning, and Local LLMs.</p>
+  <p><b>An end-to-end, multi-modal cybersecurity orchestration system built with Machine Learning, Vision Transformers, GraphRAG, Deep Reinforcement Learning, and Local LLMs.</b></p>
 </div>
 
 <br/>
 
-## 📖 Overview
-
-**AegisNet** represents the next generation of autonomous network defense. Traditional cybersecurity relies on static rules (YARA signatures, IP blacklists) which fail against zero-day exploits. AegisNet solves this by treating cybersecurity as a multi-modal AI problem.
+> **AegisNet** represents the next generation of autonomous network defense. Traditional cybersecurity relies on static rules (YARA signatures, IP blacklists) which fail against zero-day exploits. AegisNet solves this by treating cybersecurity as a **multi-modal AI problem**.
 
 It acts as an autonomous AI Security Operations Center (SOC) that can "feel" network anomalies via gradient boosting, "see" the visual texture of malware binaries, map blast radiuses using Spatial GraphRAG, generate human-readable threat assessments using local Llama 3.1 LLMs, and deploy zero-trust isolation firewalls via Deep Reinforcement Learning.
 
 ---
 
-## 🏗️ Architecture Flow
+## 🏗️ Master Architecture Flow
 
 ```mermaid
 graph TD
-    A[Raw Network Packet] -->|Phase 1: Sensor| B{CatBoost Model}
-    B -->|Malicious| C[Phase 2: Vision Transformer]
-    B -->|Benign| Z[Drop]
+    classDef frontend fill:#1e1e2e,stroke:#cba6f7,stroke-width:2px,color:#cdd6f4;
+    classDef api fill:#1e1e2e,stroke:#89dceb,stroke-width:2px,color:#89dceb,font-weight:bold;
+    classDef p1 fill:#1e1e2e,stroke:#f9e2af,stroke-width:2px,color:#f9e2af;
+    classDef p2 fill:#1e1e2e,stroke:#f38ba8,stroke-width:2px,color:#f38ba8;
+    classDef p3 fill:#1e1e2e,stroke:#a6e3a1,stroke-width:2px,color:#a6e3a1;
+    classDef p4 fill:#1e1e2e,stroke:#fab387,stroke-width:2px,color:#fab387;
+    classDef p5 fill:#1e1e2e,stroke:#89b4fa,stroke-width:2px,color:#89b4fa;
+    classDef highlight fill:#f38ba8,stroke:#11111b,color:#11111b,font-weight:bold;
+
+    A[💻 Next.js Frontend UI] <-->|REST API / Webhooks| B{🔌 FastAPI API Gateway}
     
-    C -->|Binary converted to Image| D[Malware Family Classified]
+    B -->|Payload Delivery| C[⚡ Phase 1: CatBoost Sensor]
     
-    D -->|Phase 3: GraphRAG| E[(Neo4j AuraDB)]
-    E -->|Retrieve Topology & CVEs| F[Ollama Llama-3.1 LLM]
-    F -->|Generate Threat Summary| G{HITL Matrix}
+    C -->|If >85% Anomaly| D[👁️ Phase 2: Vision Transformer]
+    C -->|If Safe| Z[🟢 Ignore Traffic]
+
+    D -->|Confidence Score & Malware Family| E[🕸️ Phase 3: GraphRAG & LLM]
     
-    G -->|Condition Yellow| H[Request Human Approval]
-    G -->|Condition Green| I[Phase 4: DRL Agent]
+    E -->|Retrieve Topology| F[(Neo4j AuraDB)]
+    E -->|Assess Lateral Risk| G[🧠 Ollama Llama-3.1 LLM]
     
-    I -->|AegisBattleSim Gym| J[Calculate Optimal Firewall Rule]
-    J -->|Phase 5: SOAR| K[Generate Splunk Webhook]
-    K --> L[Next.js MLOps Dashboard]
+    G -->|Threat Context| H{⚖️ Phase 4: LangGraph Swarm}
+    
+    H -->|Confidence < 80%| I[🧑‍💻 Human-In-The-Loop Approval]
+    H -->|Confidence >= 80%| J[🤖 DRL Agent]
+    
+    I --> J
+    J -->|AegisBattleSim Gym| K[🛡️ Output Zero-Trust Firewall Rule]
+    K -->|Webhook Update| B
+    
+    B -->|Logs & Latency Data| L[📊 Phase 5: MLOps Metrics Store]
+    L -->|Polling| A
+
+    A :::frontend
+    B :::api
+    C :::p1
+    D :::p2
+    E :::p3
+    F :::p3
+    G :::p3
+    H :::p4
+    I :::p4
+    J :::p4
+    K :::highlight
+    L :::p5
 ```
 
 ---
@@ -47,7 +77,7 @@ The frontline tripwire. High-speed packet parsing using **Polars** drops irrelev
 * **Tech Stack**: `FastAPI`, `Polars`, `CatBoost`
 
 ### 2️⃣ Phase 2: Multi-Modal Vision Triage (The Analyst)
-Traditional signature matching fails when hackers slightly modify their code. AegisNet bypasses this by converting raw binary code into 2D Grayscale Images. A massive **PyTorch Vision Transformer (ViT)** then "looks" at the image to identify the malware based on its visual texture, achieving 92.9% accuracy against zero-day mutations.
+Traditional signature matching fails when hackers slightly modify their code. AegisNet bypasses this by converting raw binary code into 2D Grayscale Images. A massive **PyTorch Vision Transformer (ViT)** then "looks" at the image to identify the malware based on its visual texture, achieving extremely high accuracy against zero-day mutations.
 * **Tech Stack**: `PyTorch`, `Transformers (ViT)`, `FastAPI`, `Pillow`
 
 ### 3️⃣ Phase 3: Spatial GraphRAG & Local LLM (The Brain)
@@ -66,7 +96,7 @@ A stunning **Next.js** interactive dashboard that fully decouples the frontend f
 
 ## ⚙️ Setup & Installation (Local Execution)
 
-AegisNet has been engineered to run 100% locally on a Windows/Linux machine without requiring Docker containers, leveraging native Python environments.
+AegisNet has been engineered to run **100% locally** on a Windows/Linux machine without requiring Docker containers, leveraging native Python environments.
 
 ### Prerequisites
 * Python 3.10+
@@ -83,7 +113,7 @@ NEO4J_PASSWORD=your_secure_password
 ```
 
 ### 2. Backend Setup
-Initialize the Python environment and start the FastAPI Gateway.
+Initialize the Python environment and start the FastAPI Gateway. This gateway centrally manages all 5 phases.
 ```bash
 cd backend
 python -m venv venv
@@ -103,11 +133,14 @@ npm run dev
 ---
 
 ## 🎮 Running the Simulation
+
 1. Open your browser to `http://localhost:3000`.
-2. Ensure Ollama is running in the background.
-3. Click the **"Initiate Swarm"** button.
+2. Ensure **Ollama** is running in the background.
+3. Select an attack vector from the Control Panel and click the **"Launch Attack"** button.
 4. Watch the terminal output in the UI as the LangGraph State Machine triggers the CatBoost model, the Vision Transformer, the Neo4j query, the Llama-3 summary, and the DRL firewall isolation.
-5. Switch to the **MLOps Tab** to view the live Recharts telemetry, latency profiling, and data drift tracking.
+5. If the AI is uncertain, a gorgeous **Human-In-The-Loop (HITL)** modal will pop up demanding your approval.
+6. Once contained, an **After-Action Report** overlay will slide in detailing exactly what happened.
+7. Switch to the **MLOps Tab** to view the live Recharts telemetry, latency profiling, and data drift tracking.
 
 ---
 
