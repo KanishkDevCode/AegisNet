@@ -5,7 +5,7 @@ UNIFIED BACKEND: All models (CatBoost, ViT, PPO) are loaded directly
 in-process. No separate servers. No HTTP calls. No mock fallbacks.
 """
 
-from typing import TypedDict
+from typing import TypedDict, List
 from langgraph.graph import StateGraph, END
 from stable_baselines3 import PPO
 import numpy as np
@@ -16,6 +16,7 @@ import json
 import math
 import random
 from datetime import datetime, timezone
+from pydantic import BaseModel, ValidationError
 from dotenv import load_dotenv
 from neo4j import GraphDatabase
 
@@ -32,6 +33,30 @@ try:
     OLLAMA_AVAILABLE = True
 except ImportError:
     OLLAMA_AVAILABLE = False
+
+# ============================================================
+# SOAR WEBHOOK VALIDATION SCHEMAS
+# ============================================================
+class SOARThreatInfo(BaseModel):
+    malware_family: str
+    vision_confidence: float
+    infected_node: str
+    lateral_movement_risk: str
+
+class SOARActionTaken(BaseModel):
+    type: str
+    target: str
+    isolation_plan: str
+    approved_by: str
+
+class SOARWebhookPayload(BaseModel):
+    event_type: str
+    timestamp: str
+    severity: str
+    source: str
+    threat: SOARThreatInfo
+    action_taken: SOARActionTaken
+    siem_tags: List[str]
 
 # ============================================================
 # PROJECT PATHS
@@ -578,7 +603,7 @@ def phase3_graph_mapper(state: SecOpsState):
         
         query = """
         MATCH (s:Server)-[:HAS_VULNERABILITY]->(v:CVE)<-[:EXPLOITS]-(m:MalwareFamily {name: $malware})
-        RETURN s.name AS server, v.id AS cve
+        RETURN s.id AS server, v.id AS cve
         LIMIT 1
         """
         records, summary, keys = driver.execute_query(query, malware=malware_name)
@@ -587,16 +612,21 @@ def phase3_graph_mapper(state: SecOpsState):
             infected_server = records[0]["server"]
             cve = records[0]["cve"]
             state["infected_server"] = infected_server
+            state["graph_source"] = "LIVE_NEO4J"
             print(f"  -> Live Infected Node: {infected_server}")
         else:
-            print("  -> [WARNING] Neo4j returned no matching servers. Falling back.")
+            print("  -> [WARNING] Neo4j returned no matching servers for this malware family.")
+            print("  -> [WARNING] Using topology fallback. Run build_graph.py to populate the graph.")
             state["infected_server"] = "Web-01"
+            state["graph_source"] = "FALLBACK"
             cve = "CVE-2024-0001"
             
         driver.close()
     except Exception as e:
-        print(f"  -> [ERROR] Neo4j AuraDB unreachable. Falling back to mock. ({e})")
+        print(f"  -> [ERROR] Neo4j AuraDB unreachable: {e}")
+        print(f"  -> [ERROR] Using topology fallback. Ensure .env credentials are correct.")
         state["infected_server"] = "Web-01"
+        state["graph_source"] = "FALLBACK"
         cve = "CVE-2024-0001"
     
     # ============================================================
@@ -713,9 +743,16 @@ def phase4_drl_firewall(state: SecOpsState):
         "siem_tags": ["aegisnet", "langgraph", "drl-response", "auto-contained"],
     }
     
-    state["soar_webhook"] = soar_payload
-    print(f"\n[SOAR] Enterprise Webhook Generated:")
-    print(json.dumps(soar_payload, indent=2))
+    # Validate SOAR payload against Pydantic schema before dispatching
+    try:
+        validated_payload = SOARWebhookPayload(**soar_payload)
+        state["soar_webhook"] = validated_payload.model_dump()
+        print(f"\n[SOAR] Enterprise Webhook Generated (Schema Validated ✓):")
+        print(json.dumps(state["soar_webhook"], indent=2))
+    except ValidationError as e:
+        print(f"\n[SOAR] ⚠️ WEBHOOK VALIDATION FAILED: {e}")
+        print("[SOAR] Raw payload saved without validation.")
+        state["soar_webhook"] = soar_payload
     
     metrics.end_phase("phase4")
     state["phase_latencies"] = metrics.phase_latencies.copy()
@@ -791,13 +828,6 @@ if __name__ == "__main__":
     print("==========================================================")
     registry.load_all()
     final_state = run_swarm()
-    print("\n==========================================================")
-    print("FINAL AEGISNET STATE:")
-    for key, value in final_state.items():
-        if key != "network_payload":
-            print(f"  - {key}: {value}")
-    print("==========================================================")
-
     print("\n==========================================================")
     print("FINAL AEGISNET STATE:")
     for key, value in final_state.items():

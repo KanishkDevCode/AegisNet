@@ -1,23 +1,26 @@
 """
-AegisNet API Gateway v3.1
+AegisNet API Gateway v3.2
 ==========================
 UNIFIED BACKEND: Loads ALL models (CatBoost, ViT, PPO) at startup.
 Now with HITL (Human-in-the-Loop) approval endpoint.
+v3.2: Added WebSocket endpoint for real-time metrics push.
 """
 
 import os
 import sys
 import uuid
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+import asyncio
+import json
+from fastapi import FastAPI, HTTPException, BackgroundTasks, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Dict, Any
+from typing import Dict, Any, Set
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from api_gateway.metrics import metrics_store
 
-app = FastAPI(title="AegisNet API Gateway", version="3.1.0")
+app = FastAPI(title="AegisNet API Gateway", version="3.2.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -30,6 +33,40 @@ app.add_middleware(
 # Task store — holds all scenario states
 # Status values: PENDING | PROCESSING | AWAITING_APPROVAL | SUCCESS | FAILURE | DENIED
 TASK_STORE: Dict[str, dict] = {}
+
+# ============================================================
+# WEBSOCKET CONNECTION MANAGER
+# ============================================================
+class ConnectionManager:
+    """Manages active WebSocket connections for real-time metrics push."""
+    
+    def __init__(self):
+        self.active_connections: list[WebSocket] = []
+    
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+        print(f"  [WS] Client connected. Active connections: {len(self.active_connections)}")
+    
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+        print(f"  [WS] Client disconnected. Active connections: {len(self.active_connections)}")
+    
+    async def broadcast_metrics(self):
+        """Push current metrics to all connected WebSocket clients."""
+        if not self.active_connections:
+            return
+        data = json.dumps(metrics_store.get_dashboard_data())
+        disconnected = []
+        for connection in self.active_connections:
+            try:
+                await connection.send_text(data)
+            except Exception:
+                disconnected.append(connection)
+        for conn in disconnected:
+            self.active_connections.remove(conn)
+
+ws_manager = ConnectionManager()
 
 
 @app.on_event("startup")
@@ -156,5 +193,32 @@ async def deny_scenario(task_id: str, background_tasks: BackgroundTasks):
 
 @app.get("/api/metrics")
 async def get_metrics():
-    """Return telemetry data for the MLOps Dashboard."""
+    """Return telemetry data for the MLOps Dashboard (HTTP fallback)."""
     return metrics_store.get_dashboard_data()
+
+
+@app.websocket("/ws/metrics")
+async def websocket_metrics(websocket: WebSocket):
+    """Real-time WebSocket endpoint for MLOps telemetry push.
+    
+    Replaces the 3-second HTTP polling with an efficient push model.
+    Only sends data when metrics actually change.
+    """
+    await ws_manager.connect(websocket)
+    last_hash = None
+    try:
+        while True:
+            # Build current metrics snapshot
+            data = metrics_store.get_dashboard_data()
+            current_hash = hash(json.dumps(data, sort_keys=True))
+            
+            # Only push if data has changed
+            if current_hash != last_hash:
+                await websocket.send_text(json.dumps(data))
+                last_hash = current_hash
+            
+            await asyncio.sleep(2)
+    except WebSocketDisconnect:
+        ws_manager.disconnect(websocket)
+    except Exception:
+        ws_manager.disconnect(websocket)

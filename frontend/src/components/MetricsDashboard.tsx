@@ -116,18 +116,70 @@ export default function MetricsDashboard() {
   const [data, setData] = useState<MetricsData | null>(null);
 
   useEffect(() => {
-    const fetchMetrics = async () => {
+    let ws: WebSocket | null = null;
+    let fallbackInterval: NodeJS.Timeout | null = null;
+    let reconnectTimeout: NodeJS.Timeout | null = null;
+    let isMounted = true;
+
+    const connectWebSocket = () => {
       try {
-        const res = await axios.get('http://localhost:8000/api/metrics');
-        setData(res.data);
+        ws = new WebSocket('ws://localhost:8000/ws/metrics');
+        
+        ws.onopen = () => {
+          console.log('[AegisNet] WebSocket connected — real-time metrics active');
+          // Clear any HTTP fallback if WS connects
+          if (fallbackInterval) {
+            clearInterval(fallbackInterval);
+            fallbackInterval = null;
+          }
+        };
+        
+        ws.onmessage = (event) => {
+          if (isMounted) {
+            try {
+              setData(JSON.parse(event.data));
+            } catch { /* ignore parse errors */ }
+          }
+        };
+        
+        ws.onclose = () => {
+          console.log('[AegisNet] WebSocket disconnected — falling back to HTTP polling');
+          if (isMounted) startHttpFallback();
+          // Attempt reconnect after 5 seconds
+          if (isMounted) {
+            reconnectTimeout = setTimeout(connectWebSocket, 5000);
+          }
+        };
+        
+        ws.onerror = () => {
+          ws?.close();
+        };
       } catch {
-        // API not reachable yet
+        if (isMounted) startHttpFallback();
       }
     };
 
-    fetchMetrics();
-    const interval = setInterval(fetchMetrics, 3000);
-    return () => clearInterval(interval);
+    const startHttpFallback = () => {
+      if (fallbackInterval) return; // Already polling
+      const fetchMetrics = async () => {
+        try {
+          const res = await axios.get('http://localhost:8000/api/metrics');
+          if (isMounted) setData(res.data);
+        } catch { /* API not reachable yet */ }
+      };
+      fetchMetrics();
+      fallbackInterval = setInterval(fetchMetrics, 5000);
+    };
+
+    // Try WebSocket first
+    connectWebSocket();
+
+    return () => {
+      isMounted = false;
+      ws?.close();
+      if (fallbackInterval) clearInterval(fallbackInterval);
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+    };
   }, []);
 
   if (!data) {

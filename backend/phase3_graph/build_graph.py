@@ -139,11 +139,26 @@ class AegisNetGraphBuilder:
         """)
 
 if __name__ == "__main__":
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="AegisNet Phase 3: Neo4j Graph Builder")
+    parser.add_argument("--force", action="store_true", help="Skip confirmation prompt (DANGEROUS: wipes entire database)")
+    args = parser.parse_args()
+    
     if not NEO4J_URI or NEO4J_URI == "neo4j+s://<YOUR_AURA_ID>.databases.neo4j.io":
         print("ERROR: Please set your Neo4j Aura credentials in the .env file.")
         exit(1)
-        
+    
     print(f"Connecting to Neo4j database at {NEO4J_URI}...")
+    
+    if not args.force:
+        print("\n⚠️  WARNING: This will PERMANENTLY DELETE all existing data in your Neo4j database.")
+        print(f"   Target: {NEO4J_URI}")
+        confirm = input("   Type 'yes' to proceed: ").strip().lower()
+        if confirm != "yes":
+            print("Aborted. No changes were made.")
+            exit(0)
+    
     try:
         builder = AegisNetGraphBuilder(NEO4J_URI, NEO4J_USERNAME, NEO4J_PASSWORD)
         builder.clear_database()
@@ -156,3 +171,4 @@ if __name__ == "__main__":
         print("You can now open the Neo4j Aura console to explore the network graph visually.")
     except Exception as e:
         print(f"\nERROR: Could not connect or execute queries. Details: {e}")
+
